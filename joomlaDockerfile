@@ -1,0 +1,2 @@
+FROM joomla
+COPY html /var/www/html
