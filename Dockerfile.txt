@@ -1,0 +1,13 @@
+FROM php:apache
+
+RUN apt-get update -y && apt-get upgrade -y && apt-get install git libssl-dev -y
+
+RUN pecl install mongodb && docker-php-ext-enable mongodb
+
+RUN echo "extension=mongodb.so" > /usr/local/etc/php/conf.d/mongo.ini
+
+COPY --from=composer /usr/bin/composer /usr/bin/composer
+
+RUN composer require mongodb/mongodb
+
+COPY chat /var/www/html/
