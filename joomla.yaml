@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-server
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: mysql-server
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-server
+spec:
+  selector:
+    matchLabels:
+      app: mysql-server
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql-server
+    spec:
+      containers:
+      - image: localhost:32000/mysql-server
+        name: mysql-server
+        env:
+          # Use secret in real usage
+        - name: MYSQL_ROOT_PASSWORD
+          value: student
+        ports:
+        - containerPort: 3306
+          name: mysql-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: some-joomla
+  labels:
+    app: some-joomla
+spec:
+  ports:
+    - port: 80
+  selector:
+    app: some-joomla
+    tier: frontend
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: some-joomla
+  labels:
+    app: some-joomla
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: some-joomla
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: some-joomla
+        tier: frontend
+    spec:
+      containers:
+      - image: localhost:32000/myjoomla
+        name: some-joomla
+        env:
+        - name: JOOMLA_DB_HOST
+          value: mysql-server
+        - name: JOOMLA_DB_PASSWORD
+          value: student
+        ports:
+        - containerPort: 80
+          name: some-joomla
